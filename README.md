@@ -1,0 +1,2 @@
+# hashirajcom
+Komunitas Bahasa Jepang
