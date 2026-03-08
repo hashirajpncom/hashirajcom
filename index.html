@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Hashira - Menu</title>
+    <style>
+        :root {
+            --primary-blue: #007bff;
+            --light-blue: #e7f3ff;
+            --white: #ffffff;
+            --text-dark: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-blue);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 { color: var(--primary-blue); margin-bottom: 1.5rem; }
+        
+        .section-label {
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            margin-top: 8px;
+        }
+
+        .btn-option {
+            background: var(--white);
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            padding: 10px 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-option.active {
+            background: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-start {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-start:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>QUIZ HASHIRA</h1>
+    
+    <span class="section-label">PILIH LEVEL</span>
+    <div class="button-group" id="level-group">
+        <button class="btn-option active" onclick="select('level', 'N5', this)">N5</button>
+        <button class="btn-option" onclick="select('level', 'N4', this)">N4</button>
+        <button class="btn-option" onclick="select('level', 'N3', this)">N3</button>
+    </div>
+
+    <span class="section-label">JENIS KOTOBA</span>
+    <div class="button-group" id="type-group">
+        <button class="btn-option active" onclick="select('type', 'benda', this)">Benda</button>
+        <button class="btn-option" onclick="select('type', 'sifat', this)">Sifat</button>
+        <button class="btn-option" onclick="select('type', 'kerja', this)">Kerja</button>
+    </div>
+
+    <span class="section-label">JUMLAH SOAL</span>
+    <div class="button-group" id="amount-group">
+        <button class="btn-option active" onclick="select('amount', 10, this)">10</button>
+        <button class="btn-option" onclick="select('amount', 25, this)">25</button>
+        <button class="btn-option" onclick="select('amount', 50, this)">50</button>
+    </div>
+
+    <button class="btn-start" onclick="startQuiz()">MULAI QUIZ</button>
+</div>
+
+<script>
+    let config = { level: 'N5', type: 'benda', amount: 10 };
+
+    function select(key, value, element) {
+        config[key] = value;
+        // Reset active state in the same group
+        const siblings = element.parentElement.querySelectorAll('.btn-option');
+        siblings.forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+    }
+
+    function startQuiz() {
+        // Menyimpan pilihan ke LocalStorage agar bisa dibaca di halaman play.html
+        localStorage.setItem('quizConfig', JSON.stringify(config));
+        window.location.href = 'play.html'; // Pindah ke halaman quiz
+    }
+</script>
+
+</body>
+</html>
