@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Hashira - Menu</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --bg: #f0f5fa;
+            --white: #ffffff;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0;
+        }
+        .menu-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,123,255,0.1);
+            width: 100%; max-width: 450px;
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        h1 { color: var(--primary); font-size: 2rem; margin-bottom: 10px; letter-spacing: -1px; }
+        p { color: #666; font-size: 0.9rem; margin-bottom: 30px; }
+
+        .label { display: block; text-align: left; font-weight: 600; color: #444; margin: 15px 0 8px 5px; font-size: 0.85rem; text-transform: uppercase; }
+        
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        
+        .opt-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 12px 5px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            color: #555;
+        }
+        .opt-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .opt-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .start-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.2);
+        }
+        .start-btn:hover { background: #218838; transform: translateY(-3px); }
+    </style>
+</head>
+<body>
+
+<div class="menu-card">
+    <h1>QUIZ HASHIRA</h1>
+    <p>Uji kemampuan kosakatamu sekarang!</p>
+
+    <span class="label">Pilih Level JLPT</span>
+    <div class="grid-3">
+        <button class="opt-btn active" onclick="sel('level','N5',this)">N5</button>
+        <button class="opt-btn" onclick="sel('level','N4',this)">N4</button>
+        <button class="opt-btn" onclick="sel('level','N3',this)">N3</button>
+    </div>
+
+    <span class="label">Kategori Kotoba</span>
+    <div class="grid-3">
+        <button class="opt-btn active" onclick="sel('type','benda',this)">Benda</button>
+        <button class="opt-btn" onclick="sel('type','sifat',this)">Sifat</button>
+        <button class="opt-btn" onclick="sel('type','kerja',this)">Kerja</button>
+    </div>
+
+    <span class="label">Jumlah Soal</span>
+    <div class="grid-3">
+        <button class="opt-btn active" onclick="sel('amount',10,this)">10</button>
+        <button class="opt-btn" onclick="sel('amount',25,this)">25</button>
+        <button class="opt-btn" onclick="sel('amount',50,this)">50</button>
+    </div>
+
+    <button class="start-btn" onclick="go()">MULAI LATIHAN</button>
+</div>
+
+<script>
+    let conf = { level: 'N5', type: 'benda', amount: 10 };
+    function sel(k, v, el) {
+        conf[k] = v;
+        el.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+    }
+    function go() {
+        localStorage.setItem('hashiraConf', JSON.stringify(conf));
+        window.location.href = 'play.html';
+    }
+</script>
+</body>
+</html>
