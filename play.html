@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Hashira - Action</title>
+    <style>
+        :root { --p: #007bff; --bg: #f0f5fa; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; }
+        
+        .game-card {
+            background: white; padding: 30px; border-radius: 24px;
+            width: 90%; max-width: 450px; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            position: relative; transition: 0.3s;
+        }
+
+        .progress-container { width: 100%; height: 8px; background: #eee; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--p); width: 0%; transition: 0.4s; }
+
+        .q-text { font-size: 0.8rem; color: #999; text-transform: uppercase; font-weight: bold; }
+        .word-box { margin: 30px 0; padding: 40px 20px; background: #fbfdff; border-radius: 20px; border: 2px solid #edf2f7; }
+        .main-word { font-size: 2.8rem; font-weight: 800; color: #2d3748; display: block; }
+
+        .ans-grid { display: grid; gap: 12px; }
+        .ans-btn {
+            background: white; border: 2px solid #edf2f7; padding: 16px; border-radius: 16px;
+            cursor: pointer; font-size: 1.05rem; font-weight: 600; color: #4a5568;
+            transition: all 0.2s; outline: none;
+        }
+        .ans-btn:hover { border-color: var(--p); background: #f0f7ff; transform: translateY(-2px); }
+        .ans-btn:active { transform: scale(0.98); }
+
+        /* Animasi Transisi */
+        .fade { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+<div class="game-card fade" id="box">
+    <div id="game-ui">
+        <div class="q-text" id="info">SOAL 1</div>
+        <div class="progress-container"><div class="progress-bar" id="bar"></div></div>
+        <div class="word-box">
+            <span class="main-word" id="word">...</span>
+        </div>
+        <div class="ans-grid" id="options"></div>
+    </div>
+</div>
+
+<script>
+    const db = {
+        "N5": {
+            "benda": [{k:"本",a:"Buku"},{k:"車",a:"Mobil"},{k:"水",a:"Air"},{k:"学生",a:"Siswa"}],
+            "sifat": [{k:"高い",a:"Tinggi/Mahal"},{k:"低い",a:"Rendah"},{k:"暑い",a:"Panas"},{k:"寒い",a:"Dingin"}],
+            "kerja": [{k:"食べる",a:"Makan"},{k:"飲む",a:"Minum"},{k:"行く",a:"Pergi"},{k:"来る",a:"Datang"}]
+        },
+        "N4": {
+            "benda": [{k:"試験",a:"Ujian"},{k:"地震",a:"Gempa"},{k:"予定",a:"Rencana"},{k:"道具",a:"Alat"}],
+            "sifat": [{k:"不便",a:"Tidak Praktis"},{k:"親切",a:"Ramah"},{k:"熱心",a:"Tekun"},{k:"複雑",a:"Rumit"}],
+            "kerja": [{k:"運bu",a:"Membawa"},{k:"選ぶ",a:"Memilih"},{k:"投げる",a:"Melempar"},{k:"集める",a:"Mengumpulkan"}]
+        },
+        "N3": {
+            "benda": [{k:"経済",a:"Ekonomi"},{k:"法律",a:"Hukum"},{k:"環境",a:"Lingkungan"},{k:"著者",a:"Penulis"}],
+            "sifat": [{k:"意外",a:"Tak Disangka"},{k:"得意",a:"Mahir"},{k:"新鮮",a:"Segar"},{k:"退屈",a:"Membosankan"}],
+            "kerja": [{k:"解決する",a:"Menyelesaikan"},{k:"延期する",a:"Menunda"},{k:"提案する",a:"Mengusulkan"},{k:"追求する",a:"Mengejar"}]
+        }
+    };
+
+    const conf = JSON.parse(localStorage.getItem('hashiraConf')) || {level:'N5',type:'benda',amount:10};
+    let pool = [], current = 0, score = 0;
+
+    function start() {
+        let raw = db[conf.level][conf.type];
+        // Sesuai permintaan: jumlah soal disesuaikan dengan data yang tersedia
+        pool = [...raw].sort(() => 0.5 - Math.random()).slice(0, conf.amount);
+        render();
+    }
+
+    function render() {
+        if(current >= pool.length) return result();
+        const data = pool[current];
+        document.getElementById('info').innerText = `SOAL ${current + 1} / ${pool.length}`;
+        document.getElementById('word').innerText = data.k;
+        document.getElementById('bar').style.width = `${(current/pool.length)*100}%`;
+
+        let opts = [data.a];
+        let others = db[conf.level][conf.type].filter(x => x.a !== data.a).map(x => x.a);
+        while(opts.length < 4 && others.length > 0) {
+            let r = others.splice(Math.floor(Math.random()*others.length), 1)[0];
+            opts.push(r);
+        }
+        opts.sort(() => 0.5 - Math.random());
+
+        const cont = document.getElementById('options');
+        cont.innerHTML = '';
+        opts.forEach(o => {
+            const b = document.createElement('button');
+            b.className = 'ans-btn';
+            b.innerText = o;
+            b.onclick = () => {
+                if(o === data.a) score++;
+                current++;
+                document.getElementById('box').classList.remove('fade');
+                void document.getElementById('box').offsetWidth; // trigger reflow
+                document.getElementById('box').classList.add('fade');
+                render();
+            };
+            cont.appendChild(b);
+        });
+    }
+
+    function result() {
+        document.getElementById('bar').style.width = "100%";
+        document.getElementById('game-ui').innerHTML = `
+            <h2 style="color:var(--p)">Selesai!</h2>
+            <div style="font-size:3rem; font-weight:800; margin:20px 0;">${Math.round((score/pool.length)*100)}</div>
+            <p style="color:#666">Skor Akhir Kamu</p>
+            <p>${score} dari ${pool.length} soal benar</p>
+            <button class="ans-btn" style="width:100%; background:var(--p); color:white; border:none; margin-top:20px;" onclick="location.href='quiz.html'">Balik ke Menu</button>
+        `;
+    }
+    start();
+</script>
+</body>
+</html>
