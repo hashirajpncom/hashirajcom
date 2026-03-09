@@ -101,20 +101,38 @@
         renderQuestion();
     }
 
-    function renderQuestion() {
+   function renderQuestion() {
         if (currentIdx >= sessionPool.length) return finish();
 
         const data = sessionPool[currentIdx];
-        document.getElementById('q-count').innerText = `${currentIdx + 1} / ${sessionPool.length}`;
-        document.getElementById('bar').style.width = `${(currentIdx / sessionPool.length) * 100}%`;
+        document.getElementById('q-count').innerText = ${currentIdx + 1} / ${sessionPool.length};
+        document.getElementById('bar').style.width = ${(currentIdx / sessionPool.length) * 100}%;
         document.getElementById('word').innerText = data.k;
 
-        // Bikin Opsi (1 bener, 3 salah acak)
+        // --- FIX LOGIC OPSI DI SINI ---
         let options = [data.a];
-        let others = masterData.filter(i => i.a !== data.a).sort(() => Math.random() - 0.5);
-        for(let i=0; options.length < 4; i++) {
-            if(!options.includes(others[i].a)) options.push(others[i].a);
+        
+        // Cari pengalih yang HANYA dari level dan tipe yang sama
+        let sameCategoryPool = masterData.filter(i => i.l === data.l && i.t === data.t && i.a !== data.a);
+        
+        // Acak pool kategori yang sama
+        sameCategoryPool.sort(() => Math.random() - 0.5);
+
+        // Ambil 3 jawaban salah dari kategori yang sama
+        for(let i=0; options.length < 4 && i < sameCategoryPool.length; i++) {
+            options.push(sameCategoryPool[i].a);
         }
+
+        // Kalau datanya kurang dari 4 (antisipasi), baru ambil dari kategori lain
+        if (options.length < 4) {
+            let backupPool = masterData.filter(i => i.a !== data.a && !options.includes(i.a));
+            backupPool.sort(() => Math.random() - 0.5);
+            while (options.length < 4) {
+                options.push(backupPool.pop().a);
+            }
+        }
+        // ------------------------------
+
         options.sort(() => Math.random() - 0.5);
 
         const grid = document.getElementById('options');
@@ -127,7 +145,6 @@
             grid.appendChild(btn);
         });
     }
-
     function check(chosen, correct, btn) {
         const btns = document.querySelectorAll('.ans-btn');
         btns.forEach(b => b.style.pointerEvents = 'none');
