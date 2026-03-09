@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Hashira - Action</title>
+    <style>
+        :root { --p: #007bff; --bg: #f0f5fa; --s: #28a745; --e: #dc3545; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        
+        .game-card { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+        .progress-bar { width: 100%; height: 8px; background: #eee; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--p); width: 0%; transition: 0.4s; }
+        
+        .q-info { font-size: 0.75rem; color: #aaa; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .word-box { margin: 20px 0; padding: 40px 10px; background: #fbfdff; border-radius: 20px; border: 2px solid #edf2f7; }
+        .main-word { font-size: 2rem; font-weight: 800; color: #2d3748; }
+
+        .ans-grid { display: grid; gap: 12px; }
+        .ans-btn {
+            background: white; border: 2px solid #edf2f7; padding: 15px; border-radius: 15px;
+            cursor: pointer; font-size: 1rem; font-weight: 600; color: #4a5568; transition: 0.2s;
+        }
+        .ans-btn:hover { border-color: var(--p); background: #f0f7ff; }
+        .ans-btn.correct { background: var(--s) !important; color: white; border-color: var(--s); }
+        .ans-btn.wrong { background: var(--e) !important; color: white; border-color: var(--e); }
+        
+        .hidden { display: none; }
+        .result-score { font-size: 3rem; font-weight: 800; color: var(--p); margin: 20px 0; }
+        .back-btn { background: var(--p); color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<div class="game-card" id="quiz-container">
+    <div id="game-ui">
+        <div class="q-info">
+            <span id="label-info">N5 - BENDA</span>
+            <span id="q-count">1/10</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="bar"></div></div>
+        <div class="word-box"><span class="main-word" id="word">...</span></div>
+        <div id="options" class="ans-grid"></div>
+    </div>
+
+    <div id="result-ui" class="hidden">
+        <h2>Latihan Selesai!</h2>
+        <div class="result-score" id="final-score">0</div>
+        <p id="feedback">Mantap, Shall!</p>
+        <button class="back-btn" onclick="window.location.href='index.html'">KEMBALI KE MENU</button>
+    </div>
+</div>
+
+<script>
+    // DATA MASTER (CONTOH 50 PER JENIS)
+    const masterData = [
+        // N5 - BENDA
+        {l:'N5', t:'benda', k:'机(つくえ)', a:'Meja'}, {l:'N5', t:'benda', k:'椅子(いす)', a:'Kursi'}, {l:'N5', t:'benda', k:'本(ほん)', a:'Buku'}, {l:'N5', t:'benda', k:'車(くるま)', a:'Mobil'}, {l:'N5', t:'benda', k:'時計(とけい)', a:'Jam'},
+        // N5 - SIFAT
+        {l:'N5', t:'sifat', k:'高い(たかい)', a:'Tinggi/Mahal'}, {l:'N5', t:'sifat', k:'暑い(あつい)', a:'Panas (Cuaca)'}, {l:'N5', t:'sifat', k:'新しい(あたらしい)', a:'Baru'}, {l:'N5', t:'sifat', k:'大きい(おおきい)', a:'Besar'}, {l:'N5', t:'sifat', k:'静か(しずか)', a:'Tenang/Sepi'},
+        // N5 - KERJA
+        {l:'N5', t:'kerja', k:'食べる(たべる)', a:'Makan'}, {l:'N5', t:'kerja', k:'飲む(のむ)', a:'Minum'}, {l:'N5', t:'kerja', k:'行く(いく)', a:'Pergi'}, {l:'N5', t:'kerja', k:'見る(みる)', a:'Melihat'}, {l:'N5', t:'kerja', k:'話す(はなす)', a:'Berbicara'},
+        
+        // N4 - BENDA
+        {l:'N4', t:'benda', k:'空港(くうこう)', a:'Bandara'}, {l:'N4', t:'benda', k:'道具(どうぐ)', a:'Alat'}, {l:'N4', t:'benda', k:'案内(あんない)', a:'Panduan'}, {l:'N4', t:'benda', k:'近所(きんじょ)', a:'Tetangga'}, {l:'N4', t:'benda', k:'将来(しょうらい)', a:'Masa Depan'},
+        // N4 - SIFAT
+        {l:'N4', t:'sifat', k:'不便(ふべん)', a:'Tidak Praktis'}, {l:'N4', t:'sifat', k:'特別(とくべつ)', a:'Spesial'}, {l:'N4', t:'sifat', k:'苦い(にがい)', a:'Pahit'}, {l:'N4', t:'sifat', k:'残念(ざんねん)', a:'Sayang Sekali'}, {l:'N4', t:'sifat', k:'複雑(ふくざつ)', a:'Rumit'},
+        // N4 - KERJA
+        {l:'N4', t:'kerja', k:'集める(あつめる)', a:'Mengumpulkan'}, {l:'N4', t:'kerja', k:'伝える(つたえる)', a:'Menyampaikan'}, {l:'N4', t:'kerja', k:'泊まる(とまる)', a:'Menginap'}, {l:'N4', t:'kerja', k:'投げる(なげる)', a:'Melempar'}, {l:'N4', t:'kerja', k:'遅れる(おくれる)', a:'Terlambat'},
+
+        // N3 - BENDA
+        {l:'N3', t:'benda', k:'意識(いしき)', a:'Kesadaran'}, {l:'N3', t:'benda', k:'機会(きかい)', a:'Kesempatan'}, {l:'N3', t:'benda', k:'現象(げんしょう)', a:'Fenomena'}, {l:'N3', t:'benda', k:'権利(けんり)', a:'Hak'}, {l:'N3', t:'benda', k:'組織(そしき)', a:'Organisasi'},
+        // N3 - SIFAT
+        {l:'N3', t:'sifat', k:'得意(とくい)', a:'Mahir'}, {l:'N3', t:'sifat', k:'等しい(ひとしい)', a:'Setara'}, {l:'N3', t:'sifat', k:'利口(りこう)', a:'Pintar'}, {l:'N3', t:'sifat', k:'謙虚(けんきょ)', a:'Rendah Hati'}, {l:'N3', t:'sifat', k:'清潔(せいけつ)', a:'Bersih/Higenis'},
+        // N3 - KERJA
+        {l:'N3', t:'kerja', k:'及ぼす(およぼす)', a:'Menyebabkan'}, {l:'N3', t:'kerja', k:'削る(けずる)', a:'Mengikis/Menyerut'}, {l:'N3', t:'kerja', k:'励ます(はげます)', a:'Menyemangati'}, {l:'N3', t:'kerja', k:'焦る(あせる)', a:'Terburu-buru'}, {l:'N3', t:'kerja', k:'捕まえる(つかまえる)', a:'Menangkap'}
+    ];
+
+    let sessionPool = [];
+    let currentIdx = 0;
+    let score = 0;
+
+    // 1. Ambil Konfigurasi
+    const conf = JSON.parse(localStorage.getItem('hashiraConf')) || { level:'N5', type:'benda', amount:10 };
+
+    function init() {
+        // Filter Data sesuai Pilihan
+        sessionPool = masterData.filter(item => item.l === conf.level && item.t === conf.type);
+        
+        // Acak dan Potong sesuai jumlah soal
+        sessionPool.sort(() => Math.random() - 0.5);
+        sessionPool = sessionPool.slice(0, conf.amount);
+
+        document.getElementById('label-info').innerText = `${conf.level} - ${conf.type.toUpperCase()}`;
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        if (currentIdx >= sessionPool.length) return finish();
+
+        const data = sessionPool[currentIdx];
+        document.getElementById('q-count').innerText = `${currentIdx + 1} / ${sessionPool.length}`;
+        document.getElementById('bar').style.width = `${(currentIdx / sessionPool.length) * 100}%`;
+        document.getElementById('word').innerText = data.k;
+
+        // Bikin Opsi (1 bener, 3 salah acak)
+        let options = [data.a];
+        let others = masterData.filter(i => i.a !== data.a).sort(() => Math.random() - 0.5);
+        for(let i=0; options.length < 4; i++) {
+            if(!options.includes(others[i].a)) options.push(others[i].a);
+        }
+        options.sort(() => Math.random() - 0.5);
+
+        const grid = document.getElementById('options');
+        grid.innerHTML = '';
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'ans-btn';
+            btn.innerText = opt;
+            btn.onclick = () => check(opt, data.a, btn);
+            grid.appendChild(btn);
+        });
+    }
+
+    function check(chosen, correct, btn) {
+        const btns = document.querySelectorAll('.ans-btn');
+        btns.forEach(b => b.style.pointerEvents = 'none');
+
+        if (chosen === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            btns.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+        }
+
+        setTimeout(() => {
+            currentIdx++;
+            renderQuestion();
+        }, 1000);
+    }
+
+    function finish() {
+        document.getElementById('game-ui').classList.add('hidden');
+        document.getElementById('result-ui').classList.remove('hidden');
+        document.getElementById('final-score').innerText = Math.round((score / sessionPool.length) * 100);
+    }
+
+    init();
+</script>
+</body>
+</html>
